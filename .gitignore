@@ -1,0 +1,13 @@
+# Конфиги и состояние рабочего пространства
+.obsidian/workspace.json
+.obsidian/appearance.json
+.obsidian/graph.json
+
+# Кэш и история
+.obsidian/plugins/
+.obsidian/snippets/
+.obsidian/cache/
+.obsidian/backup-*
+
+# Пользовательские настройки
+.obsidian/app.json

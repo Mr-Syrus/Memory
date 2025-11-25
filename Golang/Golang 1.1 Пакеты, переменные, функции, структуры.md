@@ -163,6 +163,14 @@ func main() {
 - поля структуры могут быть экспортируемыми/публичными (с заглавной буквы) или не экспартируемыми/приватными (со строчной).
 - К структурам можно привязать методы (функции работающие с конкретной структурой) подробнее в [[Golang  функции, структуры, методы (объяснение аналога наследования)]].
 
+Терминалогия
+- поля (fields): переменные пренадлежащие структуре
+- методы (methods): функции, привязанные к конкретному типу
+- получатель (receiver): параметр, связывающий метод с структурой
+- **Value** vs **Pointer** receivers: методы могут работать с копией или ссылаться на оригинал структуры.
+
+ - * - это ссылка, физически это номер ячейки в памяти в которой хранится оригинал 
+
 Синтаксис:
 ```Go
 type ИмяСтруктуры struct {
@@ -182,57 +190,102 @@ package main
 
 import "fmt"
 
-// Определение структуры
+// Объявление структуры
 type Person struct {
+    // Поля структуры
     Name    string
     Age     int
     Email   string
-    IsAdmin bool
+    isAdmin bool  // неэкспортируемое поле
 }
 
-// Метод для структуры Person
-func (p Person) Introduce() {
-    fmt.Printf("Меня зовут %s, мне %d лет. Мой email: %s\n", 
-        p.Name, p.Age, p.Email)
+// Метод с value receiver (работает с копией)
+func (p Person) Introduce() string {
+    return fmt.Sprintf("Меня зовут %s, мне %d лет", p.Name, p.Age)
 }
 
-// Функция, принимающая структуру
-func createPerson(name string, age int, email string, isAdmin bool) Person {
+// Метод с pointer receiver (работает с оригиналом)
+func (p *Person) Birthday() {
+    p.Age++  // Изменяем оригинальную структуру
+}
+
+// Метод для проверки доступа
+func (p Person) CanEdit() bool {
+    return p.isAdmin
+}
+
+// Конструктор (идиоматичный способ создания структур)
+func NewPerson(name, email string, age int, isAdmin bool) Person {
     return Person{
         Name:    name,
         Age:     age,
         Email:   email,
-        IsAdmin: isAdmin,
+        isAdmin: isAdmin,
     }
+}
+
+// Встраивание структур (composition)
+type Address struct {
+    City    string
+    Street  string
+    House   int
+}
+
+type Employee struct {
+    Person   // Встроенная структура (наследование в стиле Go)
+    Address  // Встроенная структура
+    Position string
+    Salary   float64
 }
 
 func main() {
     // Создание экземпляра структуры
-    var user1 Person
-    user1.Name = "Иван"
-    user1.Age = 30
-    user1.Email = "ivan@mail.com"
-    user1.IsAdmin = false
-
-    // Краткая инициализация
-    user2 := Person{
+    var person1 Person
+    person1.Name = "Иван"
+    person1.Age = 30
+    person1.Email = "ivan@mail.com"
+    person1.isAdmin = false
+    
+    // Литерал структуры
+    person2 := Person{
         Name:    "Мария",
         Age:     25,
         Email:   "maria@mail.com",
-        IsAdmin: true,
+        isAdmin: true,
     }
-
-    // Создание через функцию
-    user3 := createPerson("Петр", 35, "petr@mail.com", false)
-
-    fmt.Println("Пользователь 1:", user1.Name, user1.Age)
-    fmt.Println("Пользователь 2:", user2.Name, user2.Age)
-    fmt.Println("Пользователь 3:", user3.Name, user3.Age)
-
-    // Вызов метода
-    user1.Introduce()
-    user2.Introduce()
-    user3.Introduce()
+    
+    // Использование конструктора
+    person3 := NewPerson("Петр", "petr@mail.com", 35, false)
+    
+    fmt.Println(person1.Introduce())
+    fmt.Println(person2.Introduce())
+    
+    person1.Birthday()
+    fmt.Println("После дня рождения:", person1.Introduce())
+    
+    fmt.Println("Мария может редактировать?", person2.CanEdit())
+    fmt.Println("Иван может редактировать?", person1.CanEdit())
+    
+    // Работа с встроенными структурами
+    employee := Employee{
+        Person: Person{
+            Name: "Алексей",
+            Age:  28,
+        },
+        Address: Address{
+            City:   "Москва",
+            Street: "Ленина",
+            House:  15,
+        },
+        Position: "Разработчик",
+        Salary:   150000,
+    }
+    
+    // Прямой доступ к полям встроенных структур
+    fmt.Printf("%s работает в %s на позиции %s\n", 
+        employee.Name, // Из Person
+        employee.City, // Из Address
+        employee.Position)
 }
 ```
 
